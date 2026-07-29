@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Skypass Enhancements Settings</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <img class="brand-icon" src="icons/icon48.png" alt="">
+      <div class="brand-text">
+        <h1>Skypass Enhancements</h1>
+        <p class="tagline">Feature toggles &amp; defaults</p>
+      </div>
+    </header>
+
+    <nav class="tabs" id="tabs"></nav>
+
+    <main class="panels" id="panels"></main>
+
+    <footer class="app-footer">
+      <button id="reset" class="btn btn-outlined">Reset defaults</button>
+      <button id="save" class="btn btn-primary">Save changes</button>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="utils/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

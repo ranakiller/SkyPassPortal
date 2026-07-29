@@ -1,0 +1,81 @@
+{
+  "manifest_version": 3,
+  "name": "Skypass Ticketing Portal Enhancements",
+  "version": "1.0.0",
+  "description": "Automation and UI enhancements for the Skypass agent ticketing portal (skypass.pk): flight filters, WhatsApp copy buttons, MRZ autofill, booking CSV export, and more.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.ocr.space/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://skypass.pk/*",
+        "https://www.skypass.pk/*"
+      ],
+      "js": [
+        "utils/settings.js",
+        "utils/mrz-utils.js",
+        "utils/ocr.js",
+        "sptModules/skypass-auto-login.js",
+        "sptModules/skypass-right-click-fix.js",
+        "sptModules/skypass-days-calculator.js",
+        "sptModules/skypass-flight-filters.js",
+        "sptModules/skypass-whatsapp-copy.js",
+        "sptModules/skypass-seats-copy.js",
+        "sptModules/skypass-confirmed-booking-copy.js",
+        "sptModules/skypass-cancelled-overlay-fix.js",
+        "sptModules/skypass-cancelled-mrz.js",
+        "sptModules/skypass-edit-booking-link.js",
+        "sptModules/skypass-dob-doe-formatting.js",
+        "sptModules/skypass-mrz-bulk-fill.js",
+        "sptModules/skypass-bulk-browse.js",
+        "sptModules/skypass-max-adults-finder.js",
+        "sptModules/skypass-auto-check-review.js",
+        "sptModules/skypass-print-booking-button.js",
+        "sptModules/skypass-download-csv.js",
+        "sptModules/skypass-booking-print-title.js",
+        "sptModules/skypass-pdf-download.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://skypass.pk/agents/agent_ticket/*",
+        "https://www.skypass.pk/agents/agent_ticket/*"
+      ],
+      "js": [
+        "utils/settings.js",
+        "utils/mrz-utils.js",
+        "utils/ocr.js",
+        "ebModules/editbooking-nav-buttons.js",
+        "ebModules/editbooking-mrz-bulk-fill.js",
+        "ebModules/editbooking-bulk-browse.js",
+        "ebModules/editbooking-auto-check-review.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://skypass.pk/agents/book-tickets",
+        "https://www.skypass.pk/agents/book-tickets"
+      ],
+      "js": ["utils/settings.js", "sptModules/find-seats.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
