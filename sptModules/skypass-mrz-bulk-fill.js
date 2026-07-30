@@ -18,45 +18,45 @@
         if (settings.enableMrzBulkFill) (function() {
             'use strict';
 
-            function addMRZDiv() {
-                // Select the first and second divs
+            function addMRZDiv(secondDiv) {
+                // Select the first div (the second was already found by the wait below)
                 const firstDiv = document.querySelector('.custom_shadow.scrollsets');
-                const secondDiv = document.querySelector('.table-responsive.no-data.settable-view');
+                if (!firstDiv) return;
 
-                if (firstDiv && secondDiv) {
-                    // Create the new div
-                    const newDiv = document.createElement('div');
-                    newDiv.className = 'py-30 px-30 rounded-4 bg-white custom_shadow';
-                    newDiv.style.marginBottom = '30px'; // Add some space between the divs if needed
+                // Create the new div
+                const newDiv = document.createElement('div');
+                newDiv.className = 'py-30 px-30 rounded-4 bg-white custom_shadow';
+                newDiv.style.marginBottom = '30px'; // Add some space between the divs if needed
 
-                    // Create the text area
-                    const textArea = document.createElement('textarea');
-                    textArea.id = 'bulkMRZInput';
-                    textArea.placeholder = 'Paste MRZs here in Bulk';
-                    textArea.style.width = '100%';
-                    textArea.style.resize = 'both';
-                    textArea.style.fontFamily = 'Consolas, monospace'; // Set font to Consolas
+                // Create the text area
+                const textArea = document.createElement('textarea');
+                textArea.id = 'bulkMRZInput';
+                textArea.placeholder = 'Paste MRZs here in Bulk';
+                textArea.style.width = '100%';
+                textArea.style.resize = 'both';
+                textArea.style.fontFamily = 'Consolas, monospace'; // Set font to Consolas
 
-                    // Append the text area to the new div
-                    newDiv.appendChild(textArea);
+                // Append the text area to the new div
+                newDiv.appendChild(textArea);
 
-                    // Insert the new div after the first div and before the second div
-                    firstDiv.parentNode.insertBefore(newDiv, secondDiv);
+                // Insert the new div after the first div and before the second div
+                firstDiv.parentNode.insertBefore(newDiv, secondDiv);
 
-                    // When OCR scanning is on, the per-passenger Browse buttons
-                    // and the Bulk Browse button (see skypass-bulk-browse.js,
-                    // placed right before Confirm Booking) fully replace manual
-                    // paste, so hide the textarea - but keep it (and its wiring
-                    // below) in the DOM untouched as the fallback for when OCR
-                    // is off.
-                    if (settings.enableOcrBrowse) {
-                        textArea.style.display = 'none';
-                    }
+                // When OCR scanning is on, the per-passenger Browse buttons
+                // and the Bulk Browse button (see skypass-bulk-browse.js,
+                // placed right before Confirm Booking) fully replace manual
+                // paste, so hide the textarea - but keep it (and its wiring
+                // below) in the DOM untouched as the fallback for when OCR
+                // is off.
+                if (settings.enableOcrBrowse) {
+                    textArea.style.display = 'none';
                 }
             }
 
-            // Wait for the DOM to be fully loaded
-            window.addEventListener('load', addMRZDiv);
+            // Both divs render as part of the page's own data fetch,
+            // independently of the browser's 'load' event, so wait for them
+            // to actually exist rather than checking once on load.
+            window.sptWaitForSelector('.table-responsive.no-data.settable-view', addMRZDiv);
         })();
 
         // -------------- Extract MRZs from raw passports OCRed data --------------
@@ -158,15 +158,12 @@
                 }
             }
 
-            function setupEventListener() {
-                var textBox = document.getElementById('bulkMRZInput');
-                if (!textBox) return;
-
+            // #bulkMRZInput is created by addMRZDiv() above once the
+            // surrounding page content renders, which can happen well after
+            // (or before) the browser's 'load' event - wait for it directly
+            // instead of assuming it exists by 'load'.
+            window.sptWaitForSelector('#bulkMRZInput', function (textBox) {
                 textBox.addEventListener('input', filterMRZData);
-            }
-
-            window.addEventListener('load', function() {
-                setupEventListener();
                 filterMRZData(); // Initial run to set up the adults number
             });
 
@@ -360,9 +357,10 @@
                 }
             }
 
-            // Initial setup
-            const adultsElement = document.getElementById('adults');
-            if (adultsElement) {
+            // Initial setup. #adults is part of the page's own async-rendered
+            // form, so wait for it to actually exist rather than checking once
+            // immediately.
+            window.sptWaitForSelector('#adults', function (adultsElement) {
                 adultsElement.addEventListener('change', () => {
                     setTimeout(() => {
                         addMRZInputs();
@@ -370,7 +368,7 @@
                         setupNationalityListener();
                     }, 500);
                 });
-            }
+            });
 
             function updateNationalities(newNationality) {
                 const tables = [
@@ -390,15 +388,21 @@
                 });
             }
 
-            // Monitor changes and autofill form
-            const observer = new MutationObserver(() => {
-                addMRZInputs();
-                autofillForm();
-                setupNationalityListener();
+            // Monitor changes and autofill form. These tables render as part
+            // of the page's own data fetch, so wait for at least one to
+            // actually exist before attaching observers - querying
+            // immediately would silently attach to nothing if the fetch
+            // hadn't finished yet.
+            window.sptWaitForSelector('#dynamic-table-adult, #dynamic-table-child, #dynamic-table-infants', function () {
+                const observer = new MutationObserver(() => {
+                    addMRZInputs();
+                    autofillForm();
+                    setupNationalityListener();
+                });
+                const config = { childList: true };
+                const targetNodes = document.querySelectorAll('#dynamic-table-adult, #dynamic-table-child, #dynamic-table-infants');
+                targetNodes.forEach(node => observer.observe(node, config));
             });
-            const config = { childList: true };
-            const targetNodes = document.querySelectorAll('#dynamic-table-adult, #dynamic-table-child, #dynamic-table-infants');
-            targetNodes.forEach(node => observer.observe(node, config));
 
         })();
 

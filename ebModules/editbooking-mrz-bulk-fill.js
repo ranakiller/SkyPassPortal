@@ -18,44 +18,45 @@
         if (settings.enableMrzBulkFill) (function() {
             'use strict';
 
-            function addMRZDiv() {
-                // Select the 1st and 2nd divs based on their class names
+            function addMRZDiv(secondDiv) {
+                // Select the 1st div based on its class name (the 2nd was
+                // already found by the wait below)
                 const firstDiv = document.querySelector('.py-15.px-30.rounded-4.bg-white.custom_shadow');
-                const secondDiv = document.querySelector('.py-15.px-30.rounded-4.bg-white.custom_shadow[style="margin-top: 20px"]');
+                if (!firstDiv) return;
 
-                if (firstDiv && secondDiv) {
-                    // Create the new div to hold the bulk MRZ textarea
-                    const newDiv = document.createElement('div');
-                    newDiv.className = 'py-30 px-30 rounded-4 bg-white custom_shadow';
-                    newDiv.style.marginBottom = '30px'; // Add margin for spacing
+                // Create the new div to hold the bulk MRZ textarea
+                const newDiv = document.createElement('div');
+                newDiv.className = 'py-30 px-30 rounded-4 bg-white custom_shadow';
+                newDiv.style.marginBottom = '30px'; // Add margin for spacing
 
-                    // Create the text area for MRZ input
-                    const textArea = document.createElement('textarea');
-                    textArea.id = 'bulkMRZInput';
-                    textArea.placeholder = 'Paste MRZs here in Bulk';
-                    textArea.style.width = '100%';
-                    textArea.style.resize = 'both';
-                    textArea.style.fontFamily = 'Consolas, monospace'; // Monospaced font for easier reading
+                // Create the text area for MRZ input
+                const textArea = document.createElement('textarea');
+                textArea.id = 'bulkMRZInput';
+                textArea.placeholder = 'Paste MRZs here in Bulk';
+                textArea.style.width = '100%';
+                textArea.style.resize = 'both';
+                textArea.style.fontFamily = 'Consolas, monospace'; // Monospaced font for easier reading
 
-                    // Append the text area to the new div
-                    newDiv.appendChild(textArea);
+                // Append the text area to the new div
+                newDiv.appendChild(textArea);
 
-                    // Insert the new div between the first and second divs
-                    firstDiv.parentNode.insertBefore(newDiv, secondDiv);
+                // Insert the new div between the first and second divs
+                firstDiv.parentNode.insertBefore(newDiv, secondDiv);
 
-                    // When OCR scanning is on, the per-passenger Browse buttons
-                    // and the bottom-row Bulk Browse button (see
-                    // editbooking-bulk-browse.js) fully replace this paste box,
-                    // so hide it - but keep it (and its wiring below) in the
-                    // DOM untouched as the fallback for when OCR is off.
-                    if (settings.enableOcrBrowse) {
-                        newDiv.style.display = 'none';
-                    }
+                // When OCR scanning is on, the per-passenger Browse buttons
+                // and the bottom-row Bulk Browse button (see
+                // editbooking-bulk-browse.js) fully replace this paste box,
+                // so hide it - but keep it (and its wiring below) in the
+                // DOM untouched as the fallback for when OCR is off.
+                if (settings.enableOcrBrowse) {
+                    newDiv.style.display = 'none';
                 }
             }
 
-            // Wait for the DOM to be fully loaded
-            window.addEventListener('load', addMRZDiv);
+            // Both divs render as part of the booking form's own data fetch,
+            // independently of the browser's 'load' event, so wait for them to
+            // actually exist rather than checking once on load.
+            window.sptWaitForSelector('.py-15.px-30.rounded-4.bg-white.custom_shadow[style="margin-top: 20px"]', addMRZDiv);
         })();
 
         // -------------- Extract MRZs from raw passports OCRed data --------------
@@ -135,15 +136,12 @@
                 textBox.value = filteredData;
             }
 
-            function setupEventListener() {
-                var textBox = document.getElementById('bulkMRZInput');
-                if (!textBox) return;
-
+            // #bulkMRZInput is created by addMRZDiv() above once the
+            // surrounding page content renders, which can happen well after
+            // (or before) the browser's 'load' event - wait for it directly
+            // instead of assuming it exists by 'load'.
+            window.sptWaitForSelector('#bulkMRZInput', function (textBox) {
                 textBox.addEventListener('input', filterMRZData);
-            }
-
-            window.addEventListener('load', function() {
-                setupEventListener();
                 filterMRZData(); // Initial run to process MRZ data
             });
 

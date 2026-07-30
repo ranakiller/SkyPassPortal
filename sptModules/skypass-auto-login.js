@@ -14,18 +14,16 @@
         if (settings.enableAutoLogin && settings.loginEmail && settings.loginPassword) (function () {
             'use strict';
 
-            window.addEventListener('load', function () {
+            window.sptWaitForSelector('input[name="password"]', function (passwordField) {
                 const emailField = document.querySelector('input[name="email"]');
-                const passwordField = document.querySelector('input[name="password"]');
+                if (!emailField) return;
 
-                if (emailField && passwordField) {
-                    emailField.value = settings.loginEmail;
-                    passwordField.value = settings.loginPassword;
+                emailField.value = settings.loginEmail;
+                passwordField.value = settings.loginPassword;
 
-                    const loginButton = document.querySelector('#main_author_form button[type="submit"]');
-                    if (loginButton) {
-                        loginButton.click();
-                    }
+                const loginButton = document.querySelector('#main_author_form button[type="submit"]');
+                if (loginButton) {
+                    loginButton.click();
                 }
             });
         })();

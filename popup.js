@@ -85,7 +85,7 @@
                 { key: 'enableEditBookingLink', type: 'toggle', icon: 'link', label: 'Edit-booking link on view-booking page' },
                 { key: 'enablePrintBookingButton', type: 'toggle', icon: 'print', label: 'Duplicate "Print Booking" button' },
                 { key: 'enableBookingPrintTitle', type: 'toggle', icon: 'sell', label: 'Auto page title on booking-print page' },
-                { key: 'enablePdfDownload', type: 'toggle', icon: 'picture_as_pdf', label: 'Download booking as PDF', desc: 'Loads html2canvas/jsPDF from cdnjs into the page.' },
+                { key: 'enablePdfDownload', type: 'toggle', icon: 'picture_as_pdf', label: 'Download booking as PDF', desc: 'Renders the booking-print page to PDF via Chrome\'s own print engine.' },
                 { section: 'CSV export' },
                 { key: 'enableDownloadCsvButton', type: 'toggle', icon: 'download', label: 'Download CSV button', desc: 'Exports booking info for the eTravel CRM import.' },
                 { key: 'csvDiscountDefault', type: 'number', label: 'Default discount', dependsOn: 'enableDownloadCsvButton', min: 0 },

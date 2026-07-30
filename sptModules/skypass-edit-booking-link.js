@@ -15,13 +15,12 @@
             // Replace 'view-booking' with 'agent_ticket'
             let updatedUrl = currentUrl.replace("view-booking", "agent_ticket");
 
-            // Find the target <td> element by its class
-            let targetTd = document.querySelector("td.text-center.text-success");
-
-            // If the element is found, update its content
-            if (targetTd) {
+            // The booking details (including this cell) render after their
+            // own data fetch, independently of the browser's 'load' event, so
+            // wait for the element to actually exist.
+            window.sptWaitForSelector("td.text-center.text-success", function (targetTd) {
                 targetTd.innerHTML = `<a href="${updatedUrl}" class="text-success">Confirm</a>`;
-            }
+            });
         })();
     });
 })();

@@ -10,42 +10,48 @@
         if (settings.enableMrzOnCancelledBookings) (function() {
             'use strict';
 
-            // Select all rows with the class 'accordion-toggle'
-            const rows = document.querySelectorAll('.accordion-toggle');
+            // The cancelled-bookings list renders after its own data fetch,
+            // independently of the browser's 'load' event, so a one-shot
+            // check here would randomly miss the rows depending on how fast
+            // that fetch finishes. Wait for at least one row to actually
+            // exist first.
+            window.sptWaitForSelector('.accordion-toggle', function () {
+                const rows = document.querySelectorAll('.accordion-toggle');
 
-            rows.forEach(row => {
-                // Extract the relevant details from each row
-                const title = row.children[1].textContent.trim();
-                const givenName = row.children[2].textContent.trim();
-                const surName = row.children[3].textContent.trim();
-                const passportNumber = row.children[4].textContent.trim();
-                const dob = row.children[5].textContent.trim();
-                const expiryDate = row.children[6].textContent.trim();
-                const nationality = settings.mrzNationalityCode;
+                rows.forEach(row => {
+                    // Extract the relevant details from each row
+                    const title = row.children[1].textContent.trim();
+                    const givenName = row.children[2].textContent.trim();
+                    const surName = row.children[3].textContent.trim();
+                    const passportNumber = row.children[4].textContent.trim();
+                    const dob = row.children[5].textContent.trim();
+                    const expiryDate = row.children[6].textContent.trim();
+                    const nationality = settings.mrzNationalityCode;
 
-                // MRZ Line 1: P<Nationality<<Surname<<Givenname<<<<<<<<<<<<<<<<< (Total 44 characters)
-                let mrzLine1 = `P<${nationality}${givenName}<<${surName}`;
-                mrzLine1 = padWithPlaceholders(mrzLine1, 44); // Pad to 44 characters
+                    // MRZ Line 1: P<Nationality<<Surname<<Givenname<<<<<<<<<<<<<<<<< (Total 44 characters)
+                    let mrzLine1 = `P<${nationality}${givenName}<<${surName}`;
+                    mrzLine1 = padWithPlaceholders(mrzLine1, 44); // Pad to 44 characters
 
-                // Determine gender based on the title
-                const gender = (title === "Mr") ? "M" : "F";
+                    // Determine gender based on the title
+                    const gender = (title === "Mr") ? "M" : "F";
 
-                // Format DOB and Expiry Date to YYMMDD
-                const dobFormatted = formatDateForMRZ(dob);
-                const expiryFormatted = formatDateForMRZ(expiryDate);
+                    // Format DOB and Expiry Date to YYMMDD
+                    const dobFormatted = formatDateForMRZ(dob);
+                    const expiryFormatted = formatDateForMRZ(expiryDate);
 
-                // MRZ Line 2: PassportNumber<CheckDigit<Nationality<DOB<CheckDigit<Gender<ExpiryDate<CheckDigit<<<<<<<<<<<<<<00 (Total 44 characters)
-                let mrzLine2 = `${passportNumber}0${nationality}${dobFormatted}0${gender}${expiryFormatted}0<<<<<<<<<<<<<<00`;
+                    // MRZ Line 2: PassportNumber<CheckDigit<Nationality<DOB<CheckDigit<Gender<ExpiryDate<CheckDigit<<<<<<<<<<<<<<00 (Total 44 characters)
+                    let mrzLine2 = `${passportNumber}0${nationality}${dobFormatted}0${gender}${expiryFormatted}0<<<<<<<<<<<<<<00`;
 
-                // Create a text input box for MRZ
-                const mrzInput = document.createElement('input');
-                mrzInput.type = 'text';
-                mrzInput.value = `${mrzLine1}${mrzLine2}`; // MRZ lines combined into one string
-                mrzInput.className = 'form-control';
+                    // Create a text input box for MRZ
+                    const mrzInput = document.createElement('input');
+                    mrzInput.type = 'text';
+                    mrzInput.value = `${mrzLine1}${mrzLine2}`; // MRZ lines combined into one string
+                    mrzInput.className = 'form-control';
 
-                // Append the input box to the last cell of the row
-                const lastTd = row.lastElementChild;
-                lastTd.appendChild(mrzInput); // Append the MRZ input to the last <td>
+                    // Append the input box to the last cell of the row
+                    const lastTd = row.lastElementChild;
+                    lastTd.appendChild(mrzInput); // Append the MRZ input to the last <td>
+                });
             });
 
             // Helper function to format date to YYMMDD for MRZ

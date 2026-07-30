@@ -8,16 +8,13 @@
         if (settings.enableCancelledOverlayFix) (function() {
             'use strict';
 
-            // Wait for the page to be fully loaded
-            window.addEventListener('load', function() {
-                // Find the div with the class 'cancelled-overlay'
-                const cancelledOverlayDiv = document.querySelector('.cancelled-overlay');
-
-                // Check if the div exists
-                if (cancelledOverlayDiv) {
-                    // Remove the 'cancelled-overlay' class
-                    cancelledOverlayDiv.classList.remove('cancelled-overlay');
-                }
+            // The cancelled-bookings list renders asynchronously (after its own
+            // data fetch), independently of the browser's 'load' event, so a
+            // one-shot check on 'load' would randomly miss it depending on how
+            // fast that fetch finishes. Wait for the element to actually exist
+            // instead, however long that takes.
+            window.sptWaitForSelector('.cancelled-overlay', function (cancelledOverlayDiv) {
+                cancelledOverlayDiv.classList.remove('cancelled-overlay');
             });
         })();
     });

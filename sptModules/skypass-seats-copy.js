@@ -95,14 +95,10 @@
                 }
             }
 
-            // Main logic
-            window.addEventListener('load', function () {
-                let targetDiv = document.querySelector('.multi_city_flight_lists');
-                if (!targetDiv) {
-                    // console.error('Target div not found.');
-                    return;
-                }
-
+            // Main logic. The seats summary renders after its own data fetch,
+            // independently of the browser's 'load' event, so wait for the
+            // element to actually exist rather than checking once on load.
+            window.sptWaitForSelector('.multi_city_flight_lists', function (targetDiv) {
                 const formattedTextCallback = () => formatDivContent(targetDiv);
                 createCopyButton(targetDiv, 'copy-button', formattedTextCallback);
                 observeSeatsChange(targetDiv, 'copy-button', formattedTextCallback);

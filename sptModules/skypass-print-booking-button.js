@@ -7,10 +7,7 @@
 
     window.sptGetSettings(function (settings) {
         if (settings.enablePrintBookingButton) (function () {
-            function duplicateButtonDiv() {
-                const originalDiv = document.querySelector("#tab-button");
-                if (!originalDiv) return;
-
+            function duplicateButtonDiv(originalDiv) {
                 const newDiv = originalDiv.cloneNode(true);
                 const newButton = newDiv.querySelector("a");
 
@@ -22,7 +19,10 @@
                 originalDiv.parentNode.appendChild(newDiv);
             }
 
-            duplicateButtonDiv();
+            // The booking page's own button row renders after its data
+            // fetch, independently of the browser's 'load' event, so wait for
+            // it to actually exist rather than checking once immediately.
+            window.sptWaitForSelector("#tab-button", duplicateButtonDiv);
         })();
     });
 })();

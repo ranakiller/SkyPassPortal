@@ -9,13 +9,10 @@
         if (settings.enableMrzBulkFill && settings.enableOcrBrowse) (function () {
             'use strict';
 
-            function addBulkBrowseButton() {
+            function addBulkBrowseButton(updateButtonDiv) {
                 // Clone the same native button row Back/Print/View already clone
                 // from, so this button matches the page's own button styling
                 // exactly (not just our own injected buttons' theme).
-                const updateButtonDiv = document.querySelector(".col-xxl-2.col-xl-2.col-md-2.col-sm-12.mt-20");
-                if (!updateButtonDiv) return;
-
                 const bulkDiv = updateButtonDiv.cloneNode(true);
                 const nativeButton = bulkDiv.querySelector("button");
                 if (nativeButton) nativeButton.remove();
@@ -44,7 +41,10 @@
                 updateButtonDiv.parentNode.appendChild(bulkDiv);
             }
 
-            window.addEventListener('load', addBulkBrowseButton);
+            // The booking form (including this button row) renders after its
+            // own data fetch, independently of the browser's 'load' event, so
+            // wait for it to actually exist rather than checking once on load.
+            window.sptWaitForSelector(".col-xxl-2.col-xl-2.col-md-2.col-sm-12.mt-20", addBulkBrowseButton);
         })();
     });
 })();

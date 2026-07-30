@@ -143,9 +143,10 @@
                 };
             }
 
-            window.addEventListener('load', function () {
-                const container = document.getElementById('colcontent');
-                if (!container) return;
+            // #colcontent is populated by the flight-search results fetch,
+            // which finishes independently of (and often after) the browser's
+            // 'load' event - a one-shot check here would randomly miss it.
+            window.sptWaitForSelector('#colcontent', function (container) {
                 const processedRows = new Set();
                 let headerTexts = {};
                 let prevRowDetails = null;

@@ -11,10 +11,11 @@
 
             if (window.location.href !== "https://skypass.pk/agents/book-tickets") return;
 
-            window.addEventListener('load', function () {
-                const colDiv = document.querySelector('.col-lg-12');
-                if (!colDiv) return;
-
+            // Book-tickets search results render after their own data fetch,
+            // independently of the browser's 'load' event, so wait for the
+            // results container to actually exist rather than checking once
+            // on load.
+            window.sptWaitForSelector('.col-lg-12', function (colDiv) {
                 const cityFilterDiv = document.createElement('div');
                 cityFilterDiv.className = 'custom-filter-button-cities';
                 cityFilterDiv.style.marginTop = '10px';

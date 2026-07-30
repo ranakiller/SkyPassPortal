@@ -49,7 +49,7 @@
                 newDiv.id = 'tab-button'; // optional, or remove if you prefer unique IDs
 
                 const btn = document.createElement('a');
-                btn.textContent = 'Download CSV';
+                btn.textContent = 'Download CSV (eTravel CRM)';
                 btn.className = 'button h-50 px-24 -dark-1 bg-blue-1 text-white';
                 btn.style.cursor = 'pointer';
                 btn.style.marginLeft = '3px';

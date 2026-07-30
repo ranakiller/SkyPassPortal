@@ -58,12 +58,15 @@
                 });
             }
 
-            window.addEventListener('load', () => {
-                const currentUrl = window.location.href;
-                if (currentUrl.startsWith('https://skypass.pk/agents/view-booking/')) {
+            const currentUrl = window.location.href;
+            if (currentUrl.startsWith('https://skypass.pk/agents/view-booking/')) {
+                // The flight table renders after its own data fetch,
+                // independently of the browser's 'load' event, so wait for it
+                // to actually exist rather than checking once on load.
+                window.sptWaitForSelector('table.table-4', function () {
                     addCopyButtonForFlightTable('table.table-4', 'flight-table-copy-btn');
-                }
-            });
+                });
+            }
         })();
     });
 })();

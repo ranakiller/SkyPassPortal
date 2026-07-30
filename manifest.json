@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Skypass Ticketing Portal Enhancements",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Automation and UI enhancements for the Skypass agent ticketing portal (skypass.pk): flight filters, WhatsApp copy buttons, MRZ autofill, booking CSV export, and more.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "debugger", "downloads"],
   "host_permissions": ["https://api.ocr.space/*"],
   "background": {
     "service_worker": "background.js"
@@ -31,6 +31,7 @@
         "utils/settings.js",
         "utils/mrz-utils.js",
         "utils/ocr.js",
+        "utils/dom-utils.js",
         "sptModules/skypass-auto-login.js",
         "sptModules/skypass-right-click-fix.js",
         "sptModules/skypass-days-calculator.js",
@@ -48,7 +49,27 @@
         "sptModules/skypass-auto-check-review.js",
         "sptModules/skypass-print-booking-button.js",
         "sptModules/skypass-download-csv.js",
-        "sptModules/skypass-booking-print-title.js",
+        "sptModules/skypass-booking-print-title.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://skypass.pk/agents/booking-print/*",
+        "https://www.skypass.pk/agents/booking-print/*"
+      ],
+      "js": ["sptModules/skypass-suppress-autoprint.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://skypass.pk/agents/booking-print/*",
+        "https://www.skypass.pk/agents/booking-print/*"
+      ],
+      "js": [
+        "utils/settings.js",
+        "utils/dom-utils.js",
         "sptModules/skypass-pdf-download.js"
       ],
       "run_at": "document_idle"
@@ -62,6 +83,7 @@
         "utils/settings.js",
         "utils/mrz-utils.js",
         "utils/ocr.js",
+        "utils/dom-utils.js",
         "ebModules/editbooking-nav-buttons.js",
         "ebModules/editbooking-mrz-bulk-fill.js",
         "ebModules/editbooking-bulk-browse.js",
@@ -74,7 +96,7 @@
         "https://skypass.pk/agents/book-tickets",
         "https://www.skypass.pk/agents/book-tickets"
       ],
-      "js": ["utils/settings.js", "sptModules/find-seats.js"],
+      "js": ["utils/settings.js", "utils/dom-utils.js", "sptModules/find-seats.js"],
       "run_at": "document_idle"
     }
   ]

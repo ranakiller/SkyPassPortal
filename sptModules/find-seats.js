@@ -7,9 +7,6 @@
     window.sptGetSettings(function (settings) {
         if (!settings.enableFindSeats) return;
 
-        // Select all buttons with the specified class
-        const buttons = Array.from(document.querySelectorAll('a.btn.bg-dark-4.btn_sm.text-white'));
-
         // How many adults to try loading before giving up and showing "N+".
         // Configurable from the popup (default 6, i.e. shows up to "5+").
         const maxAdultsToProbe = settings.findSeatsMaxAdultsToProbe;
@@ -65,7 +62,7 @@
             });
         }
 
-        async function findMaxAdults(iframe, url) {
+        async function findMaxAdults(iframe, url, buttons) {
             return new Promise((resolve) => {
                 iframe.src = url;
                 iframe.onload = async () => {
@@ -108,7 +105,7 @@
                 const sectorURL = buttons[i].href;
                 // console.log(`Processing ${i + 1}/${buttons.length}: ${sectorURL}`);
 
-                await findMaxAdults(iframe, sectorURL);
+                await findMaxAdults(iframe, sectorURL, buttons);
 
                 // Slight delay between each URL to allow browser to catch up
                 await new Promise(resolve => setTimeout(resolve, 50));
@@ -117,7 +114,13 @@
             document.body.removeChild(iframe); // Clean up after processing all URLs
         }
 
-        // Start processing all URLs
-        processAllUrls(buttons);
+        // The search results (including these per-sector buttons) render
+        // after their own data fetch, independently of the browser's 'load'
+        // event, so wait for at least one to actually exist rather than
+        // querying immediately.
+        window.sptWaitForSelector('a.btn.bg-dark-4.btn_sm.text-white', function () {
+            const buttons = Array.from(document.querySelectorAll('a.btn.bg-dark-4.btn_sm.text-white'));
+            processAllUrls(buttons);
+        });
     });
 })();
