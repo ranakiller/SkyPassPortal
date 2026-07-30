@@ -42,15 +42,6 @@
 
                 // Insert the new div between the first and second divs
                 firstDiv.parentNode.insertBefore(newDiv, secondDiv);
-
-                // When OCR scanning is on, the per-passenger Browse buttons
-                // and the bottom-row Bulk Browse button (see
-                // editbooking-bulk-browse.js) fully replace this paste box,
-                // so hide it - but keep it (and its wiring below) in the
-                // DOM untouched as the fallback for when OCR is off.
-                if (settings.enableOcrBrowse) {
-                    newDiv.style.display = 'none';
-                }
             }
 
             // Both divs render as part of the booking form's own data fetch,

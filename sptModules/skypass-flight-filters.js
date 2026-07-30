@@ -1,5 +1,5 @@
 // Feature module: adds dynamic City/Airline/Sector/Day filters to refine
-// flight table results cumulatively on the book-tickets page.
+// flight table results cumulatively on the book-group-tickets page.
 // Split out of the old monolithic skypass-enhancements.js so this feature
 // can't be affected by unrelated features sharing a file/closure/observer.
 (function () {
@@ -9,13 +9,31 @@
         if (settings.enableFlightFilters) (function () {
             'use strict';
 
-            if (window.location.href !== "https://skypass.pk/agents/book-tickets") return;
+            // Was an exact-string match against the naked (non-www) domain
+            // with no trailing slash/query string - it silently failed (and
+            // the filters never appeared) on https://www.skypass.pk/... or
+            // any URL with so much as a trailing slash, even though this
+            // feature is wired into the manifest entry that matches both
+            // skypass.pk and www.skypass.pk. It also targeted the wrong page
+            // path entirely at one point during porting (book-tickets
+            // instead of the real book-group-tickets) - fixed to match the
+            // original userscript's actual target exactly.
+            if (!window.location.href.includes('/agents/book-group-tickets')) return;
 
-            // Book-tickets search results render after their own data fetch,
-            // independently of the browser's 'load' event, so wait for the
-            // results container to actually exist rather than checking once
-            // on load.
-            window.sptWaitForSelector('.col-lg-12', function (colDiv) {
+            // book-group-tickets search results render after their own data fetch,
+            // independently of the browser's 'load' event. Waiting for
+            // .col-lg-12 alone isn't enough - that's an outer container that
+            // renders before the actual flight/airline rows populate inside
+            // it via their own later fetch, so scanning as soon as it exists
+            // found zero rows and produced only the unconditionally-created
+            // "Clear Filters" button with none of the real city/airline/
+            // sector/day filters next to it. Waiting for an actual airline
+            // row first guarantees there's real data to scan by the time
+            // this runs.
+            window.sptWaitForSelector('tr.airline', function () {
+                const colDiv = document.querySelector('.col-lg-12');
+                if (!colDiv) return;
+
                 const cityFilterDiv = document.createElement('div');
                 cityFilterDiv.className = 'custom-filter-button-cities';
                 cityFilterDiv.style.marginTop = '10px';

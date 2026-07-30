@@ -41,16 +41,6 @@
 
                 // Insert the new div after the first div and before the second div
                 firstDiv.parentNode.insertBefore(newDiv, secondDiv);
-
-                // When OCR scanning is on, the per-passenger Browse buttons
-                // and the Bulk Browse button (see skypass-bulk-browse.js,
-                // placed right before Confirm Booking) fully replace manual
-                // paste, so hide the textarea - but keep it (and its wiring
-                // below) in the DOM untouched as the fallback for when OCR
-                // is off.
-                if (settings.enableOcrBrowse) {
-                    textArea.style.display = 'none';
-                }
             }
 
             // Both divs render as part of the page's own data fetch,
