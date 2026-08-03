@@ -31,6 +31,8 @@
         enableOcrBrowse: true,
         enableVizFallback: true,
         enableAutoLogin: false,
+        enableUmrahPackagesCopyButton: true,
+        enableUmrahPackagesFilters: true,
 
         // ---- Editable values (previously hardcoded) ----
         longLayoverThresholdDays: 2,
@@ -47,7 +49,9 @@
         ocrApiKey: '',
         ocrEngine: 3,
         loginEmail: '',
-        loginPassword: ''
+        loginPassword: '',
+        umrahCopyPrefixText: '',
+        umrahCopySuffixText: ''
     };
 
     // Fetches settings (merged with defaults for any missing keys) and invokes callback(settings).

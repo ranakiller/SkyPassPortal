@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Skypass Ticketing Portal Enhancements",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Automation and UI enhancements for the Skypass agent ticketing portal (skypass.pk): flight filters, WhatsApp copy buttons, MRZ autofill, booking CSV export, and more.",
   "icons": {
     "16": "icons/icon16.png",
@@ -49,7 +49,9 @@
         "sptModules/skypass-auto-check-review.js",
         "sptModules/skypass-print-booking-button.js",
         "sptModules/skypass-download-csv.js",
-        "sptModules/skypass-booking-print-title.js"
+        "sptModules/skypass-booking-print-title.js",
+        "sptModules/skypass-umrah-packages-copy.js",
+        "sptModules/skypass-umrah-packages-filters.js"
       ],
       "run_at": "document_idle"
     },

@@ -63,13 +63,18 @@
             label: 'Search',
             icon: 'search',
             fields: [
-                { section: 'Book Tickets page' },
+                { section: 'Book Group Tickets page' },
                 { key: 'enableFlightFilters', type: 'toggle', icon: 'tune', label: 'City / Airline / Sector / Day filters', desc: 'Adds filter buttons above the results table.' },
                 { key: 'enableFindSeats', type: 'toggle', icon: 'event_seat', label: 'Find seats on all flights', desc: 'Probes each flight in the background for availability.' },
                 { key: 'findSeatsMaxAdultsToProbe', type: 'number', label: 'Max adults to probe', dependsOn: 'enableFindSeats', min: 2, max: 50 },
                 { key: 'enableMaxAdultsFinder', type: 'toggle', icon: 'groups', label: 'Max adults finder', desc: 'On a single flight page, finds max bookable seats.' },
                 { key: 'enableWhatsappCopyButtons', type: 'toggle', icon: 'chat', label: 'WhatsApp-formatted copy buttons', desc: 'Copy buttons that build WhatsApp-ready flight text.' },
-                { key: 'enableSeatsCopyButton', type: 'toggle', icon: 'content_copy', label: 'Copy button on seats page' }
+                { key: 'enableSeatsCopyButton', type: 'toggle', icon: 'content_copy', label: 'Copy button on seats page' },
+                { section: 'Umrah Packages page' },
+                { key: 'enableUmrahPackagesFilters', type: 'toggle', icon: 'tune', label: 'City / Airline / Sector / Day filters', desc: 'Same filter buttons as Book Group Tickets, applied to package cards.' },
+                { key: 'enableUmrahPackagesCopyButton', type: 'toggle', icon: 'content_copy', label: 'Copy button on package cards', desc: 'Copies flight details plus the full hotel/room-price table.' },
+                { key: 'umrahCopyPrefixText', type: 'text', label: 'Message prefix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added before the copied message' },
+                { key: 'umrahCopySuffixText', type: 'text', label: 'Message suffix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added after the copied message' }
             ]
         },
         {
