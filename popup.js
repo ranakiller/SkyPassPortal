@@ -73,8 +73,9 @@
                 { section: 'Umrah Packages page' },
                 { key: 'enableUmrahPackagesFilters', type: 'toggle', icon: 'tune', label: 'City / Airline / Sector / Day filters', desc: 'Same filter buttons as Book Group Tickets, applied to package cards.' },
                 { key: 'enableUmrahPackagesCopyButton', type: 'toggle', icon: 'content_copy', label: 'Copy button on package cards', desc: 'Copies flight details plus the full hotel/room-price table.' },
-                { key: 'umrahCopyPrefixText', type: 'text', label: 'Message prefix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added before the copied message' },
-                { key: 'umrahCopySuffixText', type: 'text', label: 'Message suffix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added after the copied message' }
+                { key: 'umrahCopyPrefixText', type: 'textarea', label: 'Message prefix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added before the copied message' },
+                { key: 'umrahCopySuffixText', type: 'textarea', label: 'Message suffix', dependsOn: 'enableUmrahPackagesCopyButton', extraWide: true, placeholder: 'Optional text added after the copied message' },
+                { key: 'umrahPriceDriftTolerance', type: 'number', label: 'Bulk copy: price drift tolerance (PKR)', desc: '"Copy All" merges dates into one message only if every room price is within this much of each other; a bigger gap starts a new message.', dependsOn: 'enableUmrahPackagesCopyButton', min: 0, max: 100000 }
             ]
         },
         {
@@ -155,6 +156,16 @@
     }
 
     function makeValueInput(field) {
+        if (field.type === 'textarea') {
+            const textarea = document.createElement('textarea');
+            textarea.dataset.key = field.key;
+            textarea.rows = field.rows || 3;
+            textarea.className = field.extraWide ? 'wide xwide' : 'wide';
+            if (field.maxlength) textarea.maxLength = field.maxlength;
+            if (field.placeholder) textarea.placeholder = field.placeholder;
+            return textarea;
+        }
+
         const input = document.createElement('input');
         input.dataset.key = field.key;
         if (field.type === 'number') {
@@ -274,6 +285,19 @@
         tabsEl.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
         panelsEl.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === id));
         panelsEl.scrollTop = 0;
+        chrome.storage.local.set({ sptActivePopupTab: id });
+    }
+
+    // The popup's whole document is torn down and rebuilt from scratch every
+    // time it's opened (it's not a persistent page), so remembering which tab
+    // was open last needs actual storage, not just JS state - chrome.storage.local
+    // rather than .sync since this is a per-device UI preference, not a setting.
+    function restoreLastTab() {
+        chrome.storage.local.get({ sptActivePopupTab: TABS[0].id }, function (result) {
+            if (TABS.some(tab => tab.id === result.sptActivePopupTab)) {
+                selectTab(result.sptActivePopupTab);
+            }
+        });
     }
 
     function loadValues() {
@@ -328,4 +352,5 @@
 
     buildUI();
     loadValues();
+    restoreLastTab();
 })();

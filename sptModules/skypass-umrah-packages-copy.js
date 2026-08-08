@@ -1,6 +1,7 @@
 // Feature module: adds a "Copy" button to each package card on the Umrah
 // packages page, producing a WhatsApp-ready message: airline name + duration,
-// flight legs, baggage, then every Makkah (*MAK*)/Madinah (*MED*) hotel
+// flight legs (available seats as 💺 N appended to each date's first leg
+// line), baggage, then every Makkah (*MAK*)/Madinah (*MED*) hotel
 // combination numbered *Package # N*, with all four room-type prices
 // (Sharing/Quad/Triple/Double, each prefixed "* " so WhatsApp indents them,
 // shown as N/A wherever the page itself shows a literal 0 - that means
@@ -98,13 +99,40 @@
                 return card.querySelector('.route-baggage span')?.textContent.replace(/\s+/g, ' ').trim() || '';
             }
 
+            function getCardSeats(card) {
+                return card.querySelector('.package-seats__count')?.textContent.trim() || '';
+            }
+
+            // Same as getCardFlightLines, but with the available-seats count
+            // (💺 N) appended to just the first leg's line - that's the one
+            // line per date that's actually specific to that date's
+            // inventory, so it's where the seat count belongs.
+            function getCardFlightLinesWithSeats(card) {
+                const lines = getCardFlightLines(card);
+                const seats = getCardSeats(card);
+                if (lines.length && seats) {
+                    lines[0] = `${lines[0]} \u{1F4BA} ${seats}`;
+                }
+                return lines;
+            }
+
+            // A price of "N/A" means that room type isn't available for
+            // that hotel combination, so it can't be compared numerically -
+            // returns null for those, otherwise the price as a plain number
+            // (commas stripped) for the bulk-grouping tolerance check below.
+            function parsePriceValue(formatted) {
+                if (formatted === 'N/A') return null;
+                const n = Number(formatted.replace(/,/g, ''));
+                return Number.isFinite(n) ? n : null;
+            }
+
             // One entry per hotel-combination row: `text` is the fully
             // formatted block (numbered *Package # N*, bold MAK/MED labels,
-            // the four star-prefixed prices) and `labelKey` is just the
-            // MAK/MED hotel names with no prices, used by the bulk grouping
-            // below - prices drift slightly date to date even for what's
-            // otherwise the same package, so matching on labels rather than
-            // the full row (prices included) is what actually groups them.
+            // the four star-prefixed prices), `labelKey` is just the MAK/MED
+            // hotel names with no prices (used to detect "same package,
+            // different date" for bulk grouping), and `prices` is the same
+            // four room-type prices as plain numbers (or null for N/A), used
+            // by the bulk grouping's price-drift tolerance check.
             function getCardPriceRows(card) {
                 const rows = card.querySelectorAll('.hotel-pricing-table tbody tr.api-package-row');
                 const result = [];
@@ -128,7 +156,8 @@
                     const double = formatPrice(cells[5].querySelector('.price-booking-link__amount')?.textContent);
 
                     result.push({
-                        labelKey: `${makkahLabel}${madinahLabel}`,
+                        labelKey: `${makkahLabel}${madinahLabel}`,
+                        prices: [sharing, quad, triple, double].map(parsePriceValue),
                         text: [
                             `*Package # ${packageNumber}*`,
                             `*MAK*: ${makkahLabel}`,
@@ -158,7 +187,7 @@
             function formatPackageCard(card) {
                 const airline = getCardAirline(card);
                 const duration = getCardDuration(card);
-                const flightLines = getCardFlightLines(card);
+                const flightLines = getCardFlightLinesWithSeats(card);
                 const baggage = getCardBaggage(card);
                 const priceRows = getCardPriceRows(card);
 
@@ -172,6 +201,29 @@
                 return wrapWithPrefixSuffix(message.trim());
             }
 
+            // True if every corresponding room price between two price-row
+            // sets (same hotel line-up, so same length/order already) is
+            // within `tolerance` PKR of each other. N/A (null) only counts
+            // as "within tolerance" of another N/A - a room that flips from
+            // unavailable to available (or vice versa) is always treated as
+            // a real difference regardless of tolerance.
+            function pricesWithinTolerance(rowsA, rowsB, tolerance) {
+                for (let i = 0; i < rowsA.length; i++) {
+                    const pricesA = rowsA[i].prices;
+                    const pricesB = rowsB[i].prices;
+                    for (let j = 0; j < pricesA.length; j++) {
+                        const a = pricesA[j];
+                        const b = pricesB[j];
+                        if (a === null || b === null) {
+                            if (a !== b) return false;
+                        } else if (Math.abs(a - b) > tolerance) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
             // Walks every currently-visible card (respecting whatever the
             // page's own sector/airline/hotel filters have hidden) in DOM
             // order and folds consecutive cards into a single group when
@@ -179,15 +231,22 @@
             // data-sector attribute), duration, and hotel line-up - those
             // are the same underlying package just offered on another
             // departure date, so only the date's flight-leg lines need
-            // repeating, not the whole hotel/price block. Room prices are
-            // deliberately NOT part of this comparison: real per-date prices
-            // drift by small amounts even for what's otherwise the same
-            // package, so matching on exact prices caused near-identical
-            // dates to wrongly split into separate groups. The first card in
-            // each group supplies the baggage line and price table shown for
-            // the whole group. A genuinely different airline/route/duration/
-            // hotel line-up starts a brand new group (a separate message).
+            // repeating, not the whole hotel/price block. Room prices
+            // themselves are compared with a tolerance (popup > Search >
+            // Umrah Packages page > Price drift tolerance) rather than
+            // exactly: real per-date prices drift by small amounts even for
+            // what's otherwise the same package, so requiring an exact match
+            // wrongly split near-identical dates into separate messages -
+            // but a jump bigger than the tolerance is treated as a real
+            // price change and still starts a new group, so the price table
+            // shown (taken from the first card in the group) never
+            // misrepresents a date by more than that tolerance. A genuinely
+            // different airline/route/duration/hotel line-up also always
+            // starts a new group (a separate message).
             function formatBulkMessage() {
+                const priceTolerance = Number(settings.umrahPriceDriftTolerance);
+                const tolerance = Number.isFinite(priceTolerance) ? priceTolerance : 0;
+
                 const cards = Array.from(document.querySelectorAll('.package-card.api-package-card'))
                     .filter(card => window.getComputedStyle(card).display !== 'none');
 
@@ -195,7 +254,7 @@
                 cards.forEach(card => {
                     const airline = getCardAirline(card);
                     const duration = getCardDuration(card);
-                    const flightLines = getCardFlightLines(card);
+                    const flightLines = getCardFlightLinesWithSeats(card);
                     const baggage = getCardBaggage(card);
                     const priceRows = getCardPriceRows(card);
                     const sector = (card.dataset.sector || '').trim().toLowerCase();
@@ -204,7 +263,9 @@
                     const key = [airlineKey, sector, duration, hotelsKey].join('');
 
                     const current = groups[groups.length - 1];
-                    if (current && current.key === key) {
+                    const samePackage = current && current.key === key
+                        && pricesWithinTolerance(current.priceRows, priceRows, tolerance);
+                    if (samePackage) {
                         current.dateBlocks.push(flightLines.join('\n'));
                     } else {
                         groups.push({ key, airline, duration, baggage, priceRows, dateBlocks: [flightLines.join('\n')] });

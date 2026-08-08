@@ -51,7 +51,8 @@
         loginEmail: '',
         loginPassword: '',
         umrahCopyPrefixText: '',
-        umrahCopySuffixText: ''
+        umrahCopySuffixText: '',
+        umrahPriceDriftTolerance: 1000
     };
 
     // Fetches settings (merged with defaults for any missing keys) and invokes callback(settings).

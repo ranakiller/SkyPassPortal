@@ -291,6 +291,10 @@ body {
   padding-left: 32px;
 }
 
+.field-row.value-row:has(textarea) {
+  align-items: flex-start;
+}
+
 .field-row.value-row .field-text .name {
   font-weight: 400;
   font-size: 11.5px;
@@ -385,6 +389,33 @@ input[type="text"]:focus {
 }
 
 input:disabled {
+  border-color: var(--md-outline-variant);
+  color: var(--md-on-surface-variant);
+  cursor: not-allowed;
+}
+
+textarea.wide,
+textarea.xwide {
+  width: 152px;
+  padding: 6px 10px;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--shape-xs);
+  background: transparent;
+  color: var(--md-on-surface);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: vertical;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+textarea:focus {
+  outline: none;
+  border: 2px solid var(--md-primary);
+  padding: 5px 9px;
+}
+
+textarea:disabled {
   border-color: var(--md-outline-variant);
   color: var(--md-on-surface-variant);
   cursor: not-allowed;
