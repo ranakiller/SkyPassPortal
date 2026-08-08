@@ -1,7 +1,10 @@
 // Feature module: adds a "Copy" button to each package card on the Umrah
-// packages page, producing a WhatsApp-ready message: airline name + duration,
-// flight legs (available seats as 💺 N appended to each date's first leg
-// line), baggage, then every Makkah (*MAK*)/Madinah (*MED*) hotel
+// packages page, producing a WhatsApp-ready message: airline name + route
+// (the page's own data-sector attribute, e.g. LYP-DXB-JED-DXB-LYP) + duration
+// on one header line, then flight legs with the per-leg airport codes
+// dropped (the route's already up on the header) and available seats as
+// 💺 N appended to each date's first leg line, baggage, then every Makkah
+// (*MAK*)/Madinah (*MED*) hotel
 // combination numbered *Package # N*, with all four room-type prices
 // (Sharing/Quad/Triple/Double, each prefixed "* " so WhatsApp indents them,
 // shown as N/A wherever the page itself shows a literal 0 - that means
@@ -72,10 +75,19 @@
                 return card.querySelector('.package-nights')?.textContent.replace(/\s+/g, ' ').trim() || '';
             }
 
+            // e.g. "lyp-dxb-jed-dxb-lyp" -> "LYP-DXB-JED-DXB-LYP" - shown
+            // once on the airline/duration header line instead of repeating
+            // the individual airport codes on every leg line below it.
+            function getCardSector(card) {
+                return (card.dataset.sector || '').trim().toUpperCase();
+            }
+
             // Returns one ```code block``` string per flight leg (departure,
             // return, etc.) - this is the part that differs between two
             // cards that otherwise share the same airline/hotel/price combo,
-            // since each card represents one specific pair of dates.
+            // since each card represents one specific pair of dates. Airport
+            // codes aren't repeated here - the route is already shown once,
+            // up on the header line, via getCardSector.
             function getCardFlightLines(card) {
                 const lines = [];
                 card.querySelectorAll('.flight-leg').forEach(leg => {
@@ -84,13 +96,11 @@
                     const dates = leg.querySelectorAll('.route-date');
                     if (points.length < 2 || dates.length < 2) return;
 
-                    const fromAirport = points[0].querySelector('.route-airport')?.textContent.trim() || '';
-                    const toAirport = points[1].querySelector('.route-airport')?.textContent.trim() || '';
                     const date = points[0].querySelector('.route-city')?.textContent.replace(/\s+/g, '').toUpperCase() || '';
                     const depTime = dates[0].textContent.replace(':', '').trim();
                     const arrTime = dates[1].textContent.replace(':', '').trim();
 
-                    lines.push('```' + `${flightNo} ${date} ${fromAirport}-${toAirport} ${depTime}-${arrTime}` + '```');
+                    lines.push('```' + `${flightNo} ${date} ${depTime}-${arrTime}` + '```');
                 });
                 return lines;
             }
@@ -186,12 +196,13 @@
 
             function formatPackageCard(card) {
                 const airline = getCardAirline(card);
+                const sector = getCardSector(card);
                 const duration = getCardDuration(card);
                 const flightLines = getCardFlightLinesWithSeats(card);
                 const baggage = getCardBaggage(card);
                 const priceRows = getCardPriceRows(card);
 
-                let message = airline ? `${airline}${duration ? ` *${duration}*` : ''}\n` : '';
+                let message = airline ? `${airline}${sector ? ` ${sector}` : ''}${duration ? ` *${duration}*` : ''}\n` : '';
                 if (flightLines.length) message += flightLines.join('\n') + '\n';
                 if (baggage) message += baggage + '\n';
                 if (priceRows.length) {
@@ -253,14 +264,14 @@
                 const groups = [];
                 cards.forEach(card => {
                     const airline = getCardAirline(card);
+                    const sector = getCardSector(card);
                     const duration = getCardDuration(card);
                     const flightLines = getCardFlightLinesWithSeats(card);
                     const baggage = getCardBaggage(card);
                     const priceRows = getCardPriceRows(card);
-                    const sector = (card.dataset.sector || '').trim().toLowerCase();
                     const airlineKey = (card.dataset.airline || airline).trim().toLowerCase();
                     const hotelsKey = priceRows.map(r => r.labelKey).join('');
-                    const key = [airlineKey, sector, duration, hotelsKey].join('');
+                    const key = [airlineKey, sector.toLowerCase(), duration, hotelsKey].join('');
 
                     const current = groups[groups.length - 1];
                     const samePackage = current && current.key === key
@@ -268,12 +279,12 @@
                     if (samePackage) {
                         current.dateBlocks.push(flightLines.join('\n'));
                     } else {
-                        groups.push({ key, airline, duration, baggage, priceRows, dateBlocks: [flightLines.join('\n')] });
+                        groups.push({ key, airline, sector, duration, baggage, priceRows, dateBlocks: [flightLines.join('\n')] });
                     }
                 });
 
                 const sections = groups.map(group => {
-                    let msg = group.airline ? `${group.airline}${group.duration ? ` *${group.duration}*` : ''}\n` : '';
+                    let msg = group.airline ? `${group.airline}${group.sector ? ` ${group.sector}` : ''}${group.duration ? ` *${group.duration}*` : ''}\n` : '';
                     msg += group.dateBlocks.join('\n\n') + '\n';
                     if (group.baggage) msg += group.baggage + '\n';
                     if (group.priceRows.length) {
